@@ -44,13 +44,8 @@ sudo apt-get update
 # -qq implies -y --force-yes
 sudo apt-get install -qq nginx
 
-# Turn off sendfile to be more compatible with Windows, which can't use NFS
-sed -i 's/sendfile on;/sendfile off;/' /etc/nginx/nginx.conf
-
-# Set run-as user for PHP5-FPM processes to user/group "vagrant"
-# to avoid permission errors from apps writing to files
-sed -i "s/user www-data;/user vagrant;/" /etc/nginx/nginx.conf
-sed -i "s/# server_names_hash_bucket_size.*/server_names_hash_bucket_size 64;/" /etc/nginx/nginx.conf
+# nginx.conf grab from gist
+curl --silent -L https://gist.githubusercontent.com/jepezi/55314e4c4465e94530f8/raw/4a636d403e07832ee24e4ebc7d8d2ccc40562882/vn_nginx.conf | sudo tee /etc/nginx/nginx.conf
 
 # Add vagrant user to www-data group
 usermod -a -G www-data vagrant
@@ -65,6 +60,8 @@ sudo mv ngxen ngxdis ngxcb /usr/local/bin
 # Create Nginx Server Block named "vagrant" and enable it
 sudo ngxcb -d $public_folder -s "$1.xip.io$hostname" -e
 
+curl --silent -L https://gist.githubusercontent.com/jepezi/c8db7067cd40a2e27ee5/raw/6786e82eeb8ef9a2faf8a6aa63d6d5d2362c1357/vn_vagrant | sudo tee /etc/nginx/sites-available/vagrant
+
 # Disable "default"
 sudo ngxdis default
 
@@ -75,4 +72,4 @@ if [[ $HHVM_IS_INSTALLED -ne 0 && $PHP_IS_INSTALLED -eq 0 ]]; then
     sudo service php5-fpm restart
 fi
 
-sudo service nginx restart
+sudo service nginx reload
